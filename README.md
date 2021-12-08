@@ -1,5 +1,1 @@
-# PB20000061
-
-## 曹高翔
-
-这个仓库用于提交计算系统概论的实验作业。
+This repository is used to upload ICS Lab homework.
