@@ -1,0 +1,28 @@
+    .ORIG	x3000
+    ADD	R1,	R1,	#1 ;R1赋初值为f(0)
+    ADD	R2,	R2,	#1 ;R2赋初值为f(1)
+    ADD	R3,	R3,	#2 ;R3赋初值为f(2)
+    LD	R4,	number
+    ADD	R0,	R0,	#-1 ;R0-1=>R0
+    BRp	f1 ;R1不为1，跳转
+    ADD	R7,	R2, #0 ;R7<=R2
+    HALT
+f1  ADD	R0,	R0,	#-1 ;R0-1=>R0
+    BRp	f2 ;R1不为2，跳转
+    ADD	R7,	R3, #0 ;R7<=R3
+    HALT
+f2  ADD	R5,	R1,	R1 
+    ADD	R7,	R5,	R3
+    AND	R7,	R7,	R4
+    ADD	R1,	R2,	#0
+    ADD	R2,	R3,	#0
+    ADD	R3,	R7,	#0
+    ADD	R0,	R0,	#-1
+    BRp	f2
+    HALT
+number    .FILL	x03FF ;赋初值，用来求mod1024
+    .FILL	x03A2 ;F(20)
+    .FILL	x000A ;F(5)
+    .FILL	x0092 ;F(10)
+    .FILL	x01F2 ;F(54)
+    .END
