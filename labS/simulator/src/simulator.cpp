@@ -17,8 +17,8 @@ inline T SignExtend(const T x) {
 
 void virtual_machine_tp::UpdateCondRegister(int regname) {
     // Update the condition register
-    if (regname > 0) reg[R_COND] = 1;
-    else if (regname == 0) reg[R_COND] = 2;
+    if (reg[regname] > 0) reg[R_COND] = 1;
+    else if (reg[regname] == 0) reg[R_COND] = 2;
     else reg[R_COND] = 4;
 }
 
@@ -281,8 +281,8 @@ int16_t virtual_machine_tp::NextStep() {
             VM_TRAP(current_instruct);
             break;
         default:
-        VM_RTI(current_instruct);
-        break;       
+            VM_RTI(current_instruct);
+            break;       
     }
 
     if (current_instruct == 0) {
