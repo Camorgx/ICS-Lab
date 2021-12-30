@@ -11,10 +11,30 @@
 namespace virtual_machine_nsp {
     void memory_tp::ReadMemoryFromFile(std::string filename, int beginning_address) {
         // Read from the file
-        std::ifstream input(filename, std::ios::binary | std::ios::in);
-        while (!input.eof()) {
-            input.read((char*)(memory + (beginning_address++)), sizeof(int16_t));
-            if (beginning_address > kVirtualMachineMemorySize) return;
+        if (filename.find(".obj") != filename.npos) {
+            std::ifstream input(filename, std::ios::binary | std::ios::in);
+            while (!input.eof()) {
+                input.read((char*)(memory + (beginning_address++)), sizeof(int16_t));
+                if (beginning_address > kVirtualMachineMemorySize) return;
+            }
+        }
+        else {
+            std::ifstream input(filename);
+            int cnt = 0;
+            char c;
+            int16_t current = 0, current_cnt = 0;
+            while (!input.eof()) {
+                c = input.get();
+                if (c == '0' || c == '1') {
+                    ++current_cnt;
+                    current = (current << 1) | (c - '0');
+                }
+                if (current_cnt == 16) {
+                    current_cnt = 0;
+                    memory[beginning_address++] = current;
+                    if (beginning_address > kVirtualMachineMemorySize) return;
+                }
+            }
         }
     }
 

@@ -64,6 +64,7 @@ int main(int argc, char **argv) {
         if (gIsDetailedMode)
             std::cout << virtual_machine.reg << std::endl;
         ++time_flag;
+        if (gIsSingleStepMode) std::cin.get();
     }
 
     std::cout << virtual_machine.reg << std::endl;
