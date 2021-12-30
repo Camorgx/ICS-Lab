@@ -11,16 +11,20 @@
 namespace virtual_machine_nsp {
     void memory_tp::ReadMemoryFromFile(std::string filename, int beginning_address) {
         // Read from the file
-        // TO BE DONE
+        std::ifstream input(filename, std::ios::binary | std::ios::in);
+        while (!input.eof()) {
+            input.read((char*)(memory + (beginning_address++)), sizeof(int16_t));
+            if (beginning_address > kVirtualMachineMemorySize) return;
+        }
     }
 
     int16_t memory_tp::GetContent(int address) const {
         // get the content
-        // TO BE DONE
+        return memory[address];
     }
 
     int16_t& memory_tp::operator[](int address) {
         // get the content
-        // TO BE DONE
+        return memory[address];
     }    
 }; // virtual machine namespace

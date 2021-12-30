@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     int time_flag = 0;
     while(halt_flag) {
         // Single step
-        // TO BE DONEd
+        halt_flag = virtual_machine.NextStep();
         if (gIsDetailedMode)
             std::cout << virtual_machine.reg << std::endl;
         ++time_flag;
