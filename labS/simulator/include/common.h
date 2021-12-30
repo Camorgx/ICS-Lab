@@ -12,6 +12,7 @@
 #include <cstdio>
 
 #include <array>
+#include <bitset>
 #include <vector>
 #include <cmath>
 #include <climits>
