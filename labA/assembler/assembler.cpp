@@ -84,10 +84,7 @@ int RecognizeNumberValue(std::string s) {
         for (int i = len - 1; i >= 1; --i) {
             if (tolower(s[i]) >= 'a' && tolower(s[i]) <= 'f') ans |= (tolower(s[i]) - 'a' + 10) << (4 * (len - 1 - i));
             else if (s[i] >= '0' && s[i] <= '9') ans |= (s[i] - '0') << (4 * (len - 1 - i));
-            else {
-                std::cout << "Invalid string number: " << s << std::endl;
-                exit(1);
-            }
+            else return std::numeric_limits<int>::max();
         }
     }
     else if (s[0] == '#' || s[0] == '-' || (s[0] >= '0' && s[0] <= '9')) {
@@ -97,17 +94,11 @@ int RecognizeNumberValue(std::string s) {
         if (s[start] == '-') { neg = true; start = 2; }
         for (int i = start; i < len; ++i) {
             if (s[i] >= '0' && s[i] <= '9') ans = ans * 10 + s[i] - '0';
-            else {
-                std::cout << "Invalid string number: " << s << std::endl;
-                exit(1);
-            }
+            else return std::numeric_limits<int>::max();
         }
         if (neg) ans = -ans;
     }
-    else {
-        std::cout << "Invalid string number: " << s << std::endl;
-        exit(1);
-    }
+    else return std::numeric_limits<int>::max();
     return ans;
 }
 
@@ -144,14 +135,16 @@ std::string assembler::TranslateOprand(int current_address, std::string str, int
     auto item = label_map.GetValue(str);
     if (!(item.getType() == vAddress && item.getVal() == -1)) {
         // str is a label
-        // TO BE DONE
+        return NumberToAssemble(item.getVal());
     }
     if (str[0] == 'R') {
         // str is a register
-        // TO BE DONE
+        std::string tmp = NumberToAssemble(str.substr(1));
+        return tmp.substr(tmp.length() - 3);
     } else {
         // str is an immediate number
-        // TO BE DONE
+        std::string tmp = NumberToAssemble(str);
+        return tmp.substr(tmp.length() - opcode_length);
     }
 }
 
@@ -185,7 +178,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
             }
             std::string origin_line = line;
             // Convert `line` into upper case
-            // TO BE DONE
+            for (auto& item : line) item = toupper(item);
             
             // Store comments
             auto comment_position = line.find(";");
@@ -199,8 +192,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 continue;
             } else {
                 // Split content and comment
-                // TO BE DONE
-                std::string comment_str, content_str;
+                std::string comment_str = line.substr(comment_position), 
+                    content_str = line.substr(0, comment_position);
                 
                 // Delete the leading whitespace and the trailing whitespace
                 comment_str = Trim(comment_str);
@@ -272,9 +265,32 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 auto num_temp = word.size() - 1;
                 line_address += num_temp;
             } else if (pseudo_command == ".FILL") {
-                // TO BE DONE
+                file_address[line_index] = line_address;
+                std::string value;
+                line_stringstream >> value;
+                int val = RecognizeNumberValue(value);
+                if (val == std::numeric_limits<int>::max()) {
+                    // @ Error Invalid Number input @ FILL
+                    return -4;
+                }
+                if (val > 65535 || val < -65536) {
+                    // @ Error Too large or too small value  @ FILL
+                    return -5;
+                }
             } else if (pseudo_command == ".BLKW") {
-                // TO BE DONE
+                file_address[line_index] = line_address;
+                std::string value;
+                line_stringstream >> value;
+                int val = RecognizeNumberValue(value);
+                if (val == std::numeric_limits<int>::max()) {
+                    // @ Error Invalid Number input @ BLKW
+                    return -4;
+                }
+                if (val < 0 || val > 0xffff - line_address) {
+                    // @ Error Too large or too small value  @ FILL
+                    return -5;
+                }
+                line_address += val - 1;
             } else {
                 // @ Error Unknown Pseudo command
                 return -100;
@@ -297,7 +313,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
         line_stringstream >> word;
         if (IsLC3Command(word) != -1 || IsLC3TrapRoutine(word) != -1) {
             // * This is an operation line
-            // TO BE DONE
+            file_tag[line_index] = lOperation;
         }
 
         // * Label
@@ -307,7 +323,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
         line_stringstream >> word;
         if (IsLC3Command(word) != -1 || IsLC3TrapRoutine(word) != -1 || word == "") {
             // a label used for jump/branch
-            // TO BE DONE
+            file_tag[line_index] = lOperation;
         } else {
             file_tag[line_index] = lPseudo;
             if (word == ".FILL") {
@@ -325,13 +341,35 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
             }
             if (word == ".BLKW") {
                 // modify label map
+                label_map.AddLabel(label_name, value_tp(vAddress, line_address - 1));
                 // modify line address
-                // TO BE DONE
+                file_address[line_index] = line_address - 1;
+                std::string value;
+                line_stringstream >> value;
+                int val = RecognizeNumberValue(value);
+                if (val == std::numeric_limits<int>::max()) {
+                    // @ Error Invalid Number input @ BLKW
+                    return -4;
+                }
+                if (val < 0 || val > 0xffff - (line_address - 1)) {
+                    // @ Error Too large or too small value  @ FILL
+                    return -5;
+                }
+                line_address += val - 2;
             }
             if (word == ".STRINGZ") {
                 // modify label map
+                label_map.AddLabel(label_name, value_tp(vAddress, line_address - 1));
                 // modify line address
-                // TO BE DONE
+                file_address[line_index] = line_address - 1;
+                std::string word;
+                line_stringstream >> word;
+                if (word[0] != '\"' || word[word.size() - 1] != '\"') {
+                    // @ Error String format error
+                    return -6;
+                }
+                auto num_temp = word.size() - 1;
+                line_address += num_temp - 1;
             }
         }
     }

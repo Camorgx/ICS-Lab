@@ -105,13 +105,19 @@ class label_map_tp {
 
 // trim from left
 inline std::string &LeftTrim(std::string &s, const char *t = " \t\n\r\f\v") {
-    // TO BE DONE
+    int pos = 0;
+    std::string tmp(t);
+    while (tmp.find(s[pos]) != tmp.npos) ++pos;
+    s = s.substr(pos);
     return s;
 }
 
 // trim from right
 inline std::string &RightTrim(std::string &s, const char *t = " \t\n\r\f\v") {
-    // TO BE DONE
+    int pos = s.length() - 1;
+    std::string tmp(t);
+    while (tmp.find(s[pos]) != tmp.npos) --pos;
+    s = s.substr(0, pos + 1);
     return s;
 }
 
