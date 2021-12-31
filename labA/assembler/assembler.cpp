@@ -79,23 +79,63 @@ std::ostream &operator<<(std::ostream &os, const label_map_tp &label_map) {
 
 int RecognizeNumberValue(std::string s) {
     // Convert string s into a number
-    // TO BE DONE
+    int ans = 0, len = s.length();
+    if (tolower(s[0]) == 'x') {
+        for (int i = len - 1; i >= 1; --i) {
+            if (tolower(s[i]) >= 'a' && tolower(s[i]) <= 'f') ans |= (tolower(s[i]) - 'a' + 10) << (4 * (len - 1 - i));
+            else if (s[i] >= '0' && s[i] <= '9') ans |= (s[i] - '0') << (4 * (len - 1 - i));
+            else {
+                std::cout << "Invalid string number: " << s << std::endl;
+                exit(1);
+            }
+        }
+    }
+    else if (s[0] == '#' || s[0] == '-' || (s[0] >= '0' && s[0] <= '9')) {
+        bool neg = false;
+        int start = 0;
+        if (s[0] == '#') start = 1;
+        if (s[start] == '-') { neg = true; start = 2; }
+        for (int i = start; i < len; ++i) {
+            if (s[i] >= '0' && s[i] <= '9') ans = ans * 10 + s[i] - '0';
+            else {
+                std::cout << "Invalid string number: " << s << std::endl;
+                exit(1);
+            }
+        }
+        if (neg) ans = -ans;
+    }
+    else {
+        std::cout << "Invalid string number: " << s << std::endl;
+        exit(1);
+    }
+    return ans;
 }
 
 std::string NumberToAssemble(const int &number) {
     // Convert the number into a 16 bit binary string
-    // TO BE DONE
+    int16_t num = number & 0xffff;
+    std::string ans;
+    for (int i = 15; i >= 0; --i)
+        ans += (bool(num & (1 << i)) + '0');
+    return ans;
 }
 
 std::string NumberToAssemble(const std::string &number) {
     // Convert the number into a 16 bit binary string
-    // You might use `RecognizeNumberValue` in this function
-    // TO BE DONE
+    return NumberToAssemble(RecognizeNumberValue(number));
 }
 
 std::string ConvertBin2Hex(std::string bin)  {
     // Convert the binary string into a hex string
-    // TO BE DONE
+    int probe_cnt = 0, probe = 0, cnt = 15;
+    std::string ans;
+    for (int i = 0; i <= 3; ++i) {
+        char tmp = char(((bin[i * 4] - '0') << 3) +  ((bin[i * 4 + 1] - '0') << 2) 
+            + ((bin[i * 4 + 2] - '0') << 1) + (bin[i * 4 + 3] - '0'));
+        tmp = (tmp >= 10) ? (tmp - 10 + 'A') : (tmp + '0');
+        ans += tmp;
+    }
+    return ans;
 }
 
 std::string assembler::TranslateOprand(int current_address, std::string str, int opcode_length) {
@@ -160,6 +200,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
             } else {
                 // Split content and comment
                 // TO BE DONE
+                std::string comment_str, content_str;
                 
                 // Delete the leading whitespace and the trailing whitespace
                 comment_str = Trim(comment_str);
