@@ -135,7 +135,15 @@ std::string assembler::TranslateOprand(int current_address, std::string str, int
     auto item = label_map.GetValue(str);
     if (!(item.getType() == vAddress && item.getVal() == -1)) {
         // str is a label
-        return NumberToAssemble(item.getVal());
+        int dest = item.getVal() - current_address - 1;
+        int range = (1 << (opcode_length - 1)) - 1;
+        if (dest > range || dest < -range - 1) {
+            std::cout << str << " can't be presented by " << opcode_length 
+                << " of  2's complement number" << std::endl;
+            exit(1);
+        }
+        std::string ans = NumberToAssemble(dest);
+        return ans.substr(ans.length() - opcode_length);
     }
     if (str[0] == 'R') {
         // str is a register
@@ -438,10 +446,19 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 output_file << output_line << std::endl;
             } else if (word == ".BLKW") {
                 // Fill 0 here
-                // TO BE DONE
+                std::string number_str;
+                line_stringstream >> number_str;
+                int lines = RecognizeNumberValue(number_str);
+                std::string word = gIsHexMode ? "0000" : "0000000000000000";
+                for (int i = 0; i < lines; ++i)
+                    output_file << word << std::endl;
+                 
             } else if (word == ".STRINGZ") {
                 // Fill string here
-                // TO BE DONE
+                std::string output_string;
+                line_stringstream >> output_string;
+                for (int i = 0; i < output_string.length(); ++i)
+                    output_file << NumberToAssemble(output_string[i]) << std::endl;
             }
 
             continue;
@@ -461,7 +478,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
             parameter_str = Trim(parameter_str);
             
             // Convert comma into space for splitting
-            // TO BE DONE
+            for (auto& item : parameter_str)
+                if (item == ',') item = ' ';
 
             auto current_address = file_address[line_index];
 
@@ -496,28 +514,87 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     break;
                 case 1:
                     // "AND"
-                    // TO BE DONE
+                    result_line += "0101";
+                    if (parameter_list_size != 3) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += TranslateOprand(current_address, parameter_list[1]);
+                    if (parameter_list[2][0] == 'R') {
+                        // The third parameter is a register
+                        result_line += "000";
+                        result_line += TranslateOprand(current_address, parameter_list[2]);
+                    } else {
+                        // The third parameter is an immediate number
+                        result_line += "1";
+                        // std::cout << "hi " << parameter_list[2] << std::endl;
+                        result_line += TranslateOprand(current_address, parameter_list[2], 5);
+                    }
+                    break;
                 case 2:
                     // "BR"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0000000";
+                    result_line += TranslateOprand(current_address, parameter_list[0], 9);
+                    break;
                 case 3:
                     // "BRN"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0000100";
+                    result_line += TranslateOprand(current_address, parameter_list[0], 9);
+                    break;
                 case 4:
                     // "BRZ"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0000010";
+                    result_line += TranslateOprand(current_address, parameter_list[0], 9);
+                    break;
                 case 5:
                     // "BRP"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0000001";
+                    result_line += TranslateOprand(current_address, parameter_list[0], 9);
+                    break;
                 case 6:
                     // "BRNZ"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0000110";
+                    result_line += TranslateOprand(current_address, parameter_list[0], 9);
+                    break;
                 case 7:
                     // "BRNP"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0000101";
+                    result_line += TranslateOprand(current_address, parameter_list[0], 9);
+                    break;
                 case 8:
                     // "BRZP"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0000011";
+                    result_line += TranslateOprand(current_address, parameter_list[0], 9);
+                    break;
                 case 9:
                     // "BRNZP"
                     result_line += "0000111";
@@ -529,29 +606,85 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     break;
                 case 10:
                     // "JMP"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "1100000";
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += "000000";
+                    break;
                 case 11:
                     // "JSR"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "01001";
+                    result_line += TranslateOprand(current_address, parameter_list[0], 11);
+                    break;
                 case 12:
                     // "JSRR"
-                    // TO BE DONE
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0100000";
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += "000000";
                     break;
                 case 13:
                     // "LD"
-                    // TO BE DONE
+                    if (parameter_list_size != 2) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0010";
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += TranslateOprand(current_address, parameter_list[1], 9);
+                    break;
                 case 14:
                     // "LDI"
-                    // TO BE DONE
+                    if (parameter_list_size != 2) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "1010";
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += TranslateOprand(current_address, parameter_list[1], 9);
+                    break;
                 case 15:
                     // "LDR"
-                    // TO BE DONE
+                    if (parameter_list_size != 3) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0110";
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += TranslateOprand(current_address, parameter_list[1]);
+                    result_line += TranslateOprand(current_address, parameter_list[2], 6);
+                    break;
                 case 16:
                     // "LEA"
-                    // TO BE DONE
+                    if (parameter_list_size != 2) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "1110";
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += TranslateOprand(current_address, parameter_list[1], 9);
+                    break;
                 case 17:
                     // "NOT"
-                    // TO BE DONE
+                    result_line += "1001";
+                    if (parameter_list_size != 2) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += TranslateOprand(current_address, parameter_list[1]);
+                    result_line += "111111";
+                    break;
                 case 18:
                     // RET
                     result_line += "1100000111000000";
@@ -562,7 +695,12 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     break;
                 case 19:
                     // RTI
-                    // TO BE DONE
+                    result_line += "1000000000000000";
+                    if (parameter_list_size != 0) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    break;
                 case 20:
                     // ST
                     result_line += "0011";
@@ -575,13 +713,34 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     break;
                 case 21:
                     // STI
-                    // TO BE DONE
+                    if (parameter_list_size != 2) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "1011";
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += TranslateOprand(current_address, parameter_list[1], 9);
+                    break;
                 case 22:
                     // STR
-                    // TO BE DONE
+                    if (parameter_list_size != 3) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += "0111";
+                    result_line += TranslateOprand(current_address, parameter_list[0]);
+                    result_line += TranslateOprand(current_address, parameter_list[1]);
+                    result_line += TranslateOprand(current_address, parameter_list[2], 6);
+                    break;
                 case 23:
                     // TRAP
-                    // TO BE DONE
+                    result_line += "11110000";
+                    if (parameter_list_size != 1) {
+                        // @ Error parameter numbers
+                        return -30;
+                    }
+                    result_line += TranslateOprand(current_address, parameter_list[0], 8);
+                    break;
                 default:
                     // Unknown opcode
                     // @ Error
