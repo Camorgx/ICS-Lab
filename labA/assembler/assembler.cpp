@@ -8,21 +8,22 @@
 
 #include "assembler.h"
 
-void label_map_tp::AddLabel(const std::string &str, const value_tp &val) {
+void label_map_tp::AddLabel(const std::string& str, const value_tp& val) {
     labels_.insert(std::make_pair(str, val));
 }
 
-value_tp label_map_tp::GetValue(const std::string &str) const {
+value_tp label_map_tp::GetValue(const std::string& str) const {
     // User (vAddress, -1) to represent the error case
     if (labels_.find(str) == labels_.end()) {
         // not found
         return value_tp(vAddress, -1);
-    } else {
+    }
+    else {
         return labels_.at(str);
     }
 }
 
-std::ostream &operator<<(std::ostream &os, const StringType &item) {
+std::ostream& operator<<(std::ostream& os, const StringType& item) {
     switch (item) {
     case sComment:
         os << "Comment ";
@@ -46,7 +47,7 @@ std::ostream &operator<<(std::ostream &os, const StringType &item) {
     return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const ValueType &val) {
+std::ostream& operator<<(std::ostream& os, const ValueType& val) {
     switch (val) {
     case vAddress:
         os << "Address";
@@ -61,16 +62,17 @@ std::ostream &operator<<(std::ostream &os, const ValueType &val) {
     return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const value_tp &value) {
+std::ostream& operator<<(std::ostream& os, const value_tp& value) {
     if (value.type_ == vValue) {
         os << "[ " << value.type_ << " -- " << value.val_ << " ]";
-    } else {
+    }
+    else {
         os << "[ " << value.type_ << " -- " << std::hex << "0x" << value.val_ << " ]";
     }
     return os;
 }
 
-std::ostream &operator<<(std::ostream &os, const label_map_tp &label_map) {
+std::ostream& operator<<(std::ostream& os, const label_map_tp& label_map) {
     for (auto item : label_map.labels_) {
         os << "Name: " << item.first << " " << item.second << std::endl;
     }
@@ -102,7 +104,7 @@ int RecognizeNumberValue(std::string s) {
     return ans;
 }
 
-std::string NumberToAssemble(const int &number) {
+std::string NumberToAssemble(const int& number) {
     // Convert the number into a 16 bit binary string
     int16_t num = number & 0xffff;
     std::string ans;
@@ -111,17 +113,16 @@ std::string NumberToAssemble(const int &number) {
     return ans;
 }
 
-std::string NumberToAssemble(const std::string &number) {
+std::string NumberToAssemble(const std::string& number) {
     // Convert the number into a 16 bit binary string
     return NumberToAssemble(RecognizeNumberValue(number));
 }
 
-std::string ConvertBin2Hex(std::string bin)  {
+std::string ConvertBin2Hex(std::string bin) {
     // Convert the binary string into a hex string
-    int probe_cnt = 0, probe = 0, cnt = 15;
     std::string ans;
     for (int i = 0; i <= 3; ++i) {
-        char tmp = char(((bin[i * 4] - '0') << 3) +  ((bin[i * 4 + 1] - '0') << 2) 
+        char tmp = char(((bin[i * 4] - '0') << 3) + ((bin[i * 4 + 1] - '0') << 2)
             + ((bin[i * 4 + 2] - '0') << 1) + (bin[i * 4 + 3] - '0'));
         tmp = (tmp >= 10) ? (tmp - 10 + 'A') : (tmp + '0');
         ans += tmp;
@@ -138,7 +139,7 @@ std::string assembler::TranslateOprand(int current_address, std::string str, int
         int dest = item.getVal() - current_address - 1;
         int range = (1 << (opcode_length - 1)) - 1;
         if (dest > range || dest < -range - 1) {
-            std::cout << str << " can't be presented by " << opcode_length 
+            std::cout << str << " can't be presented by " << opcode_length
                 << " of  2's complement number" << std::endl;
             exit(1);
         }
@@ -149,7 +150,8 @@ std::string assembler::TranslateOprand(int current_address, std::string str, int
         // str is a register
         std::string tmp = NumberToAssemble(str.substr(1));
         return tmp.substr(tmp.length() - 3);
-    } else {
+    }
+    else {
         // str is an immediate number
         std::string tmp = NumberToAssemble(str);
         return tmp.substr(tmp.length() - opcode_length);
@@ -187,7 +189,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
             std::string origin_line = line;
             // Convert `line` into upper case
             for (auto& item : line) item = toupper(item);
-            
+
             // Store comments
             auto comment_position = line.find(";");
             if (comment_position == std::string::npos) {
@@ -198,11 +200,12 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 file_comment.push_back("");
                 file_address.push_back(-1);
                 continue;
-            } else {
+            }
+            else {
                 // Split content and comment
-                std::string comment_str = line.substr(comment_position), 
+                std::string comment_str = line.substr(comment_position),
                     content_str = line.substr(0, comment_position);
-                
+
                 // Delete the leading whitespace and the trailing whitespace
                 comment_str = Trim(comment_str);
                 content_str = Trim(content_str);
@@ -213,13 +216,15 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 if (content_str.size() == 0) {
                     // The whole line is a comment
                     file_tag.push_back(lComment);
-                } else {
+                }
+                else {
                     file_tag.push_back(lPending);
                 }
                 file_address.push_back(-1);
             }
         }
-    } else {
+    }
+    else {
         std::cout << "Unable to open file" << std::endl;
         // @ Input file read error
         return -1;
@@ -257,12 +262,14 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 }
                 file_address[line_index] = -1;
                 line_address = orig_address;
-            } else if (pseudo_command == ".END") {
+            }
+            else if (pseudo_command == ".END") {
                 // .END
                 file_address[line_index] = -1;
                 // If set line_address as -1, we can also check if there are programs after .END
                 // line_address = -1;
-            } else if (pseudo_command == ".STRINGZ") {
+            }
+            else if (pseudo_command == ".STRINGZ") {
                 file_address[line_index] = line_address;
                 std::string word;
                 line_stringstream >> word;
@@ -272,7 +279,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 }
                 auto num_temp = word.size() - 1;
                 line_address += num_temp;
-            } else if (pseudo_command == ".FILL") {
+            }
+            else if (pseudo_command == ".FILL") {
                 file_address[line_index] = line_address;
                 std::string value;
                 line_stringstream >> value;
@@ -285,7 +293,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     // @ Error Too large or too small value  @ FILL
                     return -5;
                 }
-            } else if (pseudo_command == ".BLKW") {
+            }
+            else if (pseudo_command == ".BLKW") {
                 file_address[line_index] = line_address;
                 std::string value;
                 line_stringstream >> value;
@@ -295,11 +304,12 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     return -4;
                 }
                 if (val < 0 || val > 0xffff - line_address) {
-                    // @ Error Too large or too small value  @ FILL
+                    // @ Error Too large or too small value  @ blkw
                     return -5;
                 }
-                line_address += val - 1;
-            } else {
+                line_address += val;
+            }
+            else {
                 // @ Error Unknown Pseudo command
                 return -100;
             }
@@ -322,6 +332,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
         if (IsLC3Command(word) != -1 || IsLC3TrapRoutine(word) != -1) {
             // * This is an operation line
             file_tag[line_index] = lOperation;
+            continue;
         }
 
         // * Label
@@ -332,7 +343,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
         if (IsLC3Command(word) != -1 || IsLC3TrapRoutine(word) != -1 || word == "") {
             // a label used for jump/branch
             file_tag[line_index] = lOperation;
-        } else {
+        }
+        else {
             file_tag[line_index] = lPseudo;
             if (word == ".FILL") {
                 line_stringstream >> word;
@@ -363,7 +375,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     // @ Error Too large or too small value  @ FILL
                     return -5;
                 }
-                line_address += val - 2;
+                line_address += val - 1;
             }
             if (word == ".STRINGZ") {
                 // modify label map
@@ -377,7 +389,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     return -6;
                 }
                 auto num_temp = word.size() - 1;
-                line_address += num_temp - 1;
+                line_address += num_temp;
             }
         }
     }
@@ -402,7 +414,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
         output_filename = input_filename;
         if (output_filename.find(".") == std::string::npos) {
             output_filename = output_filename + ".asm";
-        } else {
+        }
+        else {
             output_filename = output_filename.substr(0, output_filename.rfind("."));
             output_filename = output_filename + ".asm";
         }
@@ -444,7 +457,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 if (gIsHexMode)
                     output_line = ConvertBin2Hex(output_line);
                 output_file << output_line << std::endl;
-            } else if (word == ".BLKW") {
+            }
+            else if (word == ".BLKW") {
                 // Fill 0 here
                 std::string number_str;
                 line_stringstream >> number_str;
@@ -452,13 +466,17 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                 std::string word = gIsHexMode ? "0000" : "0000000000000000";
                 for (int i = 0; i < lines; ++i)
                     output_file << word << std::endl;
-                 
-            } else if (word == ".STRINGZ") {
+            }
+            else if (word == ".STRINGZ") {
                 // Fill string here
                 std::string output_string;
                 line_stringstream >> output_string;
-                for (int i = 0; i < output_string.length(); ++i)
-                    output_file << NumberToAssemble(output_string[i]) << std::endl;
+                for (int i = 1; i < output_string.length() - 1; ++i) {
+                    std::string output_line = NumberToAssemble(output_string[i]);
+                    if (gIsHexMode) output_line = ConvertBin2Hex(output_line);
+                    output_file << output_line << std::endl;
+                }
+                output_file << (gIsHexMode ? "0000" : "0000000000000000") << std::endl;
             }
 
             continue;
@@ -476,7 +494,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
             auto command_tag = IsLC3Command(word);
             auto parameter_str = line.substr(line.find(word) + word.size());
             parameter_str = Trim(parameter_str);
-            
+
             // Convert comma into space for splitting
             for (auto& item : parameter_str)
                 if (item == ',') item = ' ';
@@ -505,7 +523,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                         // The third parameter is a register
                         result_line += "000";
                         result_line += TranslateOprand(current_address, parameter_list[2]);
-                    } else {
+                    }
+                    else {
                         // The third parameter is an immediate number
                         result_line += "1";
                         // std::cout << "hi " << parameter_list[2] << std::endl;
@@ -525,7 +544,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                         // The third parameter is a register
                         result_line += "000";
                         result_line += TranslateOprand(current_address, parameter_list[2]);
-                    } else {
+                    }
+                    else {
                         // The third parameter is an immediate number
                         result_line += "1";
                         // std::cout << "hi " << parameter_list[2] << std::endl;
@@ -746,40 +766,41 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                     // @ Error
                     break;
                 }
-            } else {
+            }
+            else {
                 // This is a trap routine
                 command_tag = IsLC3TrapRoutine(word);
                 switch (command_tag) {
-                    case 0:
+                case 0:
                     // x20
                     result_line += "1111000000100000";
                     break;
-                    case 1:
+                case 1:
                     // x21
                     result_line += "1111000000100001";
                     break;
-                    case 2:
+                case 2:
                     // x22
                     result_line += "1111000000100010";
                     break;
-                    case 3:
+                case 3:
                     // x23
                     result_line += "1111000000100011";
                     break;
-                    case 4:
+                case 4:
                     // x24
                     result_line += "1111000000100100";
                     break;
-                    case 5:
+                case 5:
                     // x25
                     result_line += "1111000000100101";
                     break;
-                    default:
+                default:
                     // @ Error Unknown command
                     return -50;
                 }
             }
-            
+
             if (gIsHexMode)
                 result_line = ConvertBin2Hex(result_line);
             output_file << result_line << std::endl;

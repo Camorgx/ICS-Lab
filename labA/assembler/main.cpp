@@ -14,19 +14,19 @@ bool gIsDebugMode = false;
 bool gIsErrorLogMode = false;
 bool gIsHexMode = false;
 // A simple arguments parser
-std::pair<bool, string> getCmdOption(char **begin, char **end, const std::string &option) {
-    char **itr = std::find(begin, end, option);
+std::pair<bool, string> getCmdOption(char** begin, char** end, const std::string& option) {
+    char** itr = std::find(begin, end, option);
     if (itr != end && ++itr != end) {
         return std::make_pair(true, *itr);
     }
     return std::make_pair(false, "");
 }
 
-bool cmdOptionExists(char **begin, char **end, const std::string &option) {
+bool cmdOptionExists(char** begin, char** end, const std::string& option) {
     return std::find(begin, end, option) != end;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     // Print out Basic information about the assembler
     if (cmdOptionExists(argv, argv + argc, "-h")) {
         std::cout << "This is a simple assembler for LC-3." << std::endl << std::endl;
@@ -50,13 +50,15 @@ int main(int argc, char **argv) {
     // Check the input file name
     if (input_info.first) {
         input_filename = input_info.second;
-    } else {
+    }
+    else {
         input_filename = "input.txt";
     }
 
     if (output_info.first) {
         output_filename = output_info.second;
-    } else {
+    }
+    else {
         output_filename = "";
     }
 
