@@ -5,3 +5,6 @@
 **/build
 **/.vs
 **/*.o
+**/input.txt
+**/input.asm
+labA/assembler/assembler
