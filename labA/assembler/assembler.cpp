@@ -488,6 +488,8 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
             line_stringstream >> word;
             if (IsLC3Command(word) == -1 && IsLC3TrapRoutine(word) == -1) {
                 // Eliminate the label
+                line = line.substr(line.find(word) + word.size());
+                Trim(line);
                 line_stringstream >> word;
             }
 
