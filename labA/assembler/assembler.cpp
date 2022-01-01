@@ -343,6 +343,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
         if (IsLC3Command(word) != -1 || IsLC3TrapRoutine(word) != -1 || word == "") {
             // a label used for jump/branch
             file_tag[line_index] = lOperation;
+            label_map.AddLabel(label_name, value_tp(vAddress, line_address - 1));
         }
         else {
             file_tag[line_index] = lPseudo;
