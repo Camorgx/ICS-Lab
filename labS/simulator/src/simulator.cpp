@@ -70,7 +70,7 @@ void virtual_machine_tp::VM_BR(int16_t inst) {
 
 void virtual_machine_tp::VM_JMP(int16_t inst) {
     int BaseR = (inst >> 6) & 7;
-    reg[R_PC] = mem[reg[BaseR]];
+    reg[R_PC] = reg[BaseR];
 }
 
 void virtual_machine_tp::VM_JSR(int16_t inst) {
