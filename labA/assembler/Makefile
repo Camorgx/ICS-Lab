@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-I. -O2
+CFLAGS=-I. -O2 -std=c++14
 DEPS = assembler.h
 OBJ = assembler.o main.o 
 
