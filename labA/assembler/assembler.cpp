@@ -188,7 +188,13 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
             }
             std::string origin_line = line;
             // Convert `line` into upper case
-            for (auto& item : line) item = toupper(item);
+            auto quo_pos = line.find('\"');
+            if (quo_pos == line.npos)
+                for (auto& item : line) item = toupper(item);
+            else {
+                for (unsigned i = 0; i < quo_pos; ++i)
+                    line[i] = toupper(line[i]);
+            }
 
             // Store comments
             auto comment_position = line.find(";");
