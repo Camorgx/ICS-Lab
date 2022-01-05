@@ -561,7 +561,7 @@ int assembler::assemble(std::string input_filename, std::string output_filename)
                         // @ Error parameter numbers
                         return -30;
                     }
-                    result_line += "0000000";
+                    result_line += "0000111";
                     result_line += TranslateOprand(current_address, parameter_list[0], 9);
                     break;
                 case 3:
